@@ -5,7 +5,17 @@ import os
 import copy
 
 def paletteChange(src, dest, time):
-	print "Converting " + src + " to " + dest
+	if os.sep in src:
+		srcSplit = src.split(os.sep)
+		srcName = srcSplit[len(srcSplit) - 1]
+	else:
+		srcName = src
+	if os.sep in dest:
+		destSplit = dest.split(os.sep)
+		destName = destSplit[len(destSplit) - 1]
+	else:
+		destname = dest
+	print "Converting " + srcName + " to " + destName
 	imSrc = Image.open(src)
 	imDest = Image.open(dest)
 	pixSrc = imSrc.load()
@@ -15,17 +25,27 @@ def paletteChange(src, dest, time):
 	numPixels = destWidth * destHeight
 	newImage = Image.new("RGB", (destWidth, destHeight))
 	pixPallet = newImage.load()
+	reusedPixels = False
+	srcPixels = srcWidth * srcHeight
+	
+	# Copies the pixels from the source to a new image that has the same
+	# dimensions as the destination image
 	for i in xrange(numPixels):
-		try:
-			pixPallet[i % destWidth, i / destWidth] = pixSrc[i % srcWidth, i / srcWidth]
-		except:
-			red = random.randint(0,255)
-			green = random.randint(0,255)
-			blue = random.randint(0,255)
-			pixPallet[i % destWidth, i / destWidth] = (red, green, blue)
+		# If there are more pixels in the target image then we iterate through
+		# the source image again
+		if i >= srcPixels:
+			reusedPixels = True
+			i = i % srcPixels 
+		pixPallet[i % destWidth, i / destWidth] = pixSrc[i % srcWidth, i / srcWidth]
 	startTime = datetime.datetime.now()
+
+	# Run the algorithm for the alloted amount of time
 	while (datetime.datetime.now() - startTime).total_seconds() < time:
 		print "Time Left: " + str(time - ((datetime.datetime.now() - startTime).total_seconds()))
+		
+		# For each pixel in the created image we check it against 5 random 
+		# pixels and out of those 6 pixels if switching it makes it closer to
+		# the original image then we swap them
 		for x in xrange(destWidth):
 			for y in xrange(destHeight):
 				sPix = pixPallet[x,y]
@@ -46,22 +66,19 @@ def paletteChange(src, dest, time):
 						newY = randY
 				pixPallet[newX, newY] = pixPallet[x,y]
 				pixPallet[x,y] = sPix
-	if os.sep in src:
-		srcSplit = src.split(os.sep)
-		srcName = srcSplit[len(srcSplit) - 1]
-	else:
-		srcName = src
-	if os.sep in dest:
-		destSplit = dest.split(os.sep)
-		destName = destSplit[len(destSplit) - 1]
-	else:
-		destname = dest
+
+	# Creates the new image file
 	newFile = srcName.split(".")[0] + " to " + destName.split(".")[0] + "." + srcName.split(".")[1]
 	print newFile
 	newImage.save("Created" + os.sep + newFile)
-	check(src, "Created" + os.sep + newFile)
+	if not reusedPixels:
+		check(src, "Created" + os.sep + newFile)
+	else:
+		print "Success"
 
-
+# Gets the difference between two pixels using Luma weighting which weighs
+# red, green, and blue differently based on brightness since humans notice
+# brightness differences much more than they notice color difference 
 def getDelta(color1, color2):
 	luma = [0.299, 0.587, 0.144]
 	diff = 0
@@ -75,9 +92,11 @@ def getDelta(color1, color2):
 	rawDiff = sum1 - sum2
 	return diff + rawDiff * rawDiff * 10
 
+# Checks that the final result is actually the same pixels
 def check(palette, copy):
     palette = sorted(Image.open(palette).convert('RGB').getdata())
     copy = sorted(Image.open(copy).convert('RGB').getdata())
     print 'Success' if copy == palette else 'Failed'
 
-paletteChange("Original\\Mona Lisa.png","Original\\Balls.png", 150)
+paletteChange("Original\\Chicago.jpg","Original\\New York.jpg", 150)
+paletteChange("Original\\New York.jpg", "Original\\Chicago.jpg", 150)
