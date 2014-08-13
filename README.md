@@ -9,7 +9,7 @@ This script requires the Python PIL package which can be downloaded here http://
 
 ## Usage
 
-Input the path to the source picture, destination picture, and the time (in seconds) you want to run the program for. 2.5 minutes is good enough. If there aren't enough pixels in the source picture then random colors will be used instead and if the source picture is larger than the destination picture then the only the first pixels will be used
+Input the path to the source picture, destination picture, and the time (in seconds) you want to run the program for. 2.5 minutes is good enough. If there aren't enough pixels in the source picture then pixels will be reused starting from the top left and if the source picture is larger than the destination picture then only the necessary amount will be used (starting from the top left)
 
 ## Example: Mona Lisa and American Gothic
 
