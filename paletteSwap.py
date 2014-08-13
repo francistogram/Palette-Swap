@@ -1,10 +1,11 @@
 from PIL import Image
 import datetime
 import random
+import os
 import copy
 
 def paletteChange(src, dest, time):
-	print "Start"
+	print "Converting " + src + " to " + dest
 	imSrc = Image.open(src)
 	imDest = Image.open(dest)
 	pixSrc = imSrc.load()
@@ -24,6 +25,7 @@ def paletteChange(src, dest, time):
 			pixPallet[i % destWidth, i / destWidth] = (red, green, blue)
 	startTime = datetime.datetime.now()
 	while (datetime.datetime.now() - startTime).total_seconds() < time:
+		print "Time Left: " + str(time - ((datetime.datetime.now() - startTime).total_seconds()))
 		for x in xrange(destWidth):
 			for y in xrange(destHeight):
 				sPix = pixPallet[x,y]
@@ -44,10 +46,20 @@ def paletteChange(src, dest, time):
 						newY = randY
 				pixPallet[newX, newY] = pixPallet[x,y]
 				pixPallet[x,y] = sPix
-	newFile = src.split(".")[0] + " to " + dest.split(".") + src.split(".")[1]
-	newImage.save(newFile)
-	check(src, newFile)
-	print "Done"
+	if os.sep in src:
+		srcSplit = src.split(os.sep)
+		srcName = srcSplit[len(srcSplit) - 1]
+	else:
+		srcName = src
+	if os.sep in dest:
+		destSplit = dest.split(os.sep)
+		destName = destSplit[len(destSplit) - 1]
+	else:
+		destname = dest
+	newFile = srcName.split(".")[0] + " to " + destName.split(".")[0] + "." + srcName.split(".")[1]
+	print newFile
+	newImage.save("Created" + os.sep + newFile)
+	check(src, "Created" + os.sep + newFile)
 
 
 def getDelta(color1, color2):
@@ -68,4 +80,4 @@ def check(palette, copy):
     copy = sorted(Image.open(copy).convert('RGB').getdata())
     print 'Success' if copy == palette else 'Failed'
 
-paletteChange("Sunset.jpg","Ben Brancucci.jpg", 150)
+paletteChange("Original\\Mona Lisa.png","Original\\Balls.png", 150)
